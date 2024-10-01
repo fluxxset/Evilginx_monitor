@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/fsnotify/fsnotify"
+	"github.com/fatih/color"
 )
 
 var (
@@ -20,22 +21,32 @@ var (
 	stopChan   chan bool
 	monitoring bool
 )
-
 func showToolName() {
-	fmt.Println(`
-	                                             ___________      __ __           __               
+	// Colors
+	white := color.New(color.FgWhite)
+	lightBlue := color.New(color.FgHiBlue)
+	red := color.New(color.FgRed)
+	lightBlack := color.New(color.FgHiBlack)
+
+	// Print the logo with colors
+	white.Println(`
+                                             ___________      __ __           __               
                                              \_   _____/__  _|__|  |    ____ |__| ____ ___  ___
                                               |    __)_\  \/ /  |  |   / __ \|  |/    \\  \/  /
                                               |        \\   /|  |  |__/ /_/  >  |   |  \>    < 
                                              /_______  / \_/ |__|____/\___  /|__|___|  /__/\_ \
                                                      \/              /_____/         \/      \/
-                                         
-                                                     Evilgnx Monitor Community Edition
-                                         
-                                               by Fluxxset (@fluxxset)     version 1.0.0
-
-	
 	`)
+
+	// Print additional details with colors
+	lightBlue.Printf("                                         Evilginx Monitor Community Edition\n\n")
+	fmt.Printf("                                               by %s %s     version %s\n\n",
+		lightBlue.Sprint("Fluxxset"),
+		red.Sprint("(@fluxxset)"),
+		lightBlack.Sprint("1.0.0"))
+
+	// Course link
+	fmt.Println("Check out the course here: " + red.Sprint("https://shop.fluxxset.com/product/evilginx-training-course/"))
 }
 
 func showHelp() {
