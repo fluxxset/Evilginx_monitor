@@ -17,6 +17,15 @@ Download and run the tool in interactive mode! It’s easy to set up your notifi
 
 ### Usage:
 ```bash
+git clone https://github.com/fluxxset/Evilginx_monitor.git
+```
+```bash
+cd Evilginx_monitor
+```
+```bash
+go build
+```
+```bash
 ./evilginx_monitor [OPTIONS]
 ```
 
