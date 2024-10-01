@@ -65,8 +65,15 @@ func Setup() error {
 	credsFilePath := filepath.Join(configDirPath, credsFile)
 	dbFilePath := filepath.Join(configDirPath, dbFile)
 
-	if err := createDirIfNotExists(configDirPath); err != nil {
-		return fmt.Errorf("error creating config directory: %v", err)
+	if _, err := os.Stat(configDirPath); os.IsNotExist(err) {
+		// Create the directory
+		err := os.Mkdir(configDirPath, 0755) // You can change the permissions as needed
+		if err != nil {
+			fmt.Println("Error creating directory:", err)
+		}
+		fmt.Println("Directory created:", configDirPath)
+	} else {
+		fmt.Println("Directory already exists:", configDirPath)
 	}
 
 	for _, filePath := range []string{configFilePath, keysFilePath, credsFilePath} {
