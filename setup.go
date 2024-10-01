@@ -113,7 +113,7 @@ func setDefaultConfig(filePath string) error {
 			DiscordChatID:   "",
 			DiscordToken:    "",
 			DiscordEnabled:  false,
-			DBFilePath:      "data.db",
+			DBFilePath:      "/root/.evilginx/data.db",
 		}
 		file, err := os.Create(filePath)
 		if err != nil {
