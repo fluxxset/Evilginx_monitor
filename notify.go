@@ -52,9 +52,7 @@ func Notify(session Session) {
 	}
 
 	if config.DiscordEnable {
-		err := sendDiscordNotification(config.DiscordChatID, config.DiscordToken, message)
-		if err != nil {
-			fmt.Printf("Error sending Discord notification: %v\n", err)
-		}
+		sendDiscordNotification(config.DiscordChatID, config.DiscordToken, message)
+
 	}
 }
