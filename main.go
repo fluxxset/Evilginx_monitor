@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fsnotify/fsnotify"
 	"github.com/fatih/color"
+	"github.com/fsnotify/fsnotify"
 )
 
 var (
@@ -21,6 +21,7 @@ var (
 	stopChan   chan bool
 	monitoring bool
 )
+
 func showToolName() {
 	// Colors
 	white := color.New(color.FgWhite)
@@ -212,11 +213,15 @@ func UpdateConfig(config *Config) error {
 func interactiveMode() {
 	reader := bufio.NewReader(os.Stdin)
 	showToolName()
-
+	config, err := loadConfig()
+	if err != nil {
+		fmt.Println("Error loading config:", err)
+		return
+	}
 	// showHelp()
 	fmt.Println("Interactive Mode. Type 'exit' to quit.")
 
-	config := &Config{}
+	// config := &Config{}
 
 	for {
 		fmt.Print("> ")
