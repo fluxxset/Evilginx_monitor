@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -10,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/glebarez/sqlite"
 )
 
 const (
@@ -63,7 +62,6 @@ func Setup() error {
 	configFilePath := filepath.Join(configDirPath, configFile)
 	keysFilePath := filepath.Join(configDirPath, keysFile)
 	credsFilePath := filepath.Join(configDirPath, credsFile)
-	dbFilePath := filepath.Join(configDirPath, dbFile)
 
 	if _, err := os.Stat(configDirPath); os.IsNotExist(err) {
 		// Create the directory
@@ -88,10 +86,6 @@ func Setup() error {
 
 	if err := generateKeys(keysFilePath); err != nil {
 		return fmt.Errorf("error generating keys: %v", err)
-	}
-
-	if err := createDatabase(dbFilePath); err != nil {
-		return fmt.Errorf("error creating database: %v", err)
 	}
 
 	fmt.Println("Setup completed successfully.")
@@ -175,24 +169,5 @@ func createFileIfNotExists(filePath string) error {
 		}
 	}
 	// fmt.Printf("File already exists: %s\n", filePath)
-	return nil
-}
-
-func createDatabase(dbPath string) error {
-	db, err := sql.Open("sqlite3", dbPath)
-	if err != nil {
-		return fmt.Errorf("error opening database: %v", err)
-	}
-	defer db.Close()
-
-	createTableSQL := `CREATE TABLE IF NOT EXISTS records (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        credential TEXT NOT NULL,
-        sent BOOLEAN NOT NULL DEFAULT FALSE
-    );`
-	_, err = db.Exec(createTableSQL)
-	if err != nil {
-		return fmt.Errorf("error creating table: %v", err)
-	}
 	return nil
 }
