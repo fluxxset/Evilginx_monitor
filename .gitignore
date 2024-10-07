@@ -4,3 +4,4 @@ env
 .env
 .keys
 keys
+config.json
