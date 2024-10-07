@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: "⚠️ Important Notice Before Creating an Issue"
+    url: "https://github.com/fluxxset/Evilginx_monitor/wiki/Warning"
+    about: |
+      #### DO NOT ASK FOR PHISHLETS.
+      #### DO NOT ASK FOR HELP CREATING PHISHLETS.
+      #### DO NOT ASK TO FIX PHISHLETS.
+      #### DO NOT ADVERTISE OR TRY TO SELL PHISHLETS.
+      #### EXPECT A BAN OTHERWISE. THANK YOU!
+      #### REPORT ONLY BUGS OR FEATURE SUGGESTIONS.
