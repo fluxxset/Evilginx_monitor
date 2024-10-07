@@ -23,6 +23,8 @@ func sendTelegramNotification(chatID string, token string, message string) {
 	}
 
 	msg := tgbotapi.NewMessage(chatIDInt, message) // Use NewMessage for direct messages to users or groups
+	msg.ParseMode = "Markdown"                     // Enable Markdown formatting
+
 	_, err = bot.Send(msg)
 	if err != nil {
 		log.Println("Failed to send message:", err)
