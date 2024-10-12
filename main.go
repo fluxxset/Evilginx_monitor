@@ -329,7 +329,7 @@ func interactiveMode() {
 			Mfile = config.DBFilePath
 
 			// err = StartMonitoring(Mfile)
-			err = StartPolling(Mfile, 2*time.Second)
+			err = StartPolling(Mfile, 30*time.Second)
 			if err != nil {
 				log.Println("Error starting file monitoring: %v", err)
 			}
