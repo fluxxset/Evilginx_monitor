@@ -151,18 +151,30 @@ func StartMonitoring(filePath string) error {
 				if !ok {
 					return
 				}
-				if event.Op&fsnotify.Write == fsnotify.Write {
-					// Reload the configuration when the file is modified
-					readFile()
-					// reloadConfig(filePath)
+
+				// Check if file was removed or renamed
+				if event.Op&(fsnotify.Remove|fsnotify.Rename) != 0 {
+					fmt.Printf("File removed or renamed: %s. Re-initializing watcher...\n", filePath)
+					StopMonitoring()
+					// Retry monitoring after a delay
+					time.Sleep(1 * time.Second)
+					StartMonitoring(filePath)
 				}
+
+				if event.Op&fsnotify.Write == fsnotify.Write {
+					readFile() // Your logic to handle file changes
+				}
+
 			case err, ok := <-watcher.Errors:
 				if !ok {
 					return
 				}
 				fmt.Printf("Error watching file: %v\n", err)
+				StopMonitoring()            // Stop and try to restart the watcher
+				time.Sleep(1 * time.Second) // Retry after delay
+				StartMonitoring(filePath)
+
 			case <-stopChan:
-				// Stop the watcher and exit the goroutine
 				fmt.Println("Stopping monitoring...")
 				return
 			}
