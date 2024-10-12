@@ -125,6 +125,75 @@ func loadConfigx(filePath string) (Config, error) {
 	return config, nil
 }
 
+// StartPolling monitors the file using polling at regular intervals.
+func StartPolling(filePath string, interval time.Duration) error {
+	// Check if the file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		return fmt.Errorf("error: file %s does not exist", filePath)
+	}
+
+	if monitoring {
+		fmt.Println("Already monitoring file.")
+		return nil
+	}
+
+	stopChan = make(chan bool)
+
+	// Get initial file modification time
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return fmt.Errorf("error getting file info: %v", err)
+	}
+	lastModTime := fileInfo.ModTime()
+
+	// Start polling in a goroutine
+	go func() {
+		for {
+			select {
+			case <-stopChan:
+				fmt.Println("Stopping file polling...")
+				return
+			default:
+				// Poll the file at each interval
+				time.Sleep(interval)
+
+				fileInfo, err := os.Stat(filePath)
+				if err != nil {
+					fmt.Printf("Error checking file: %v\n", err)
+					continue
+				}
+
+				// Compare modification time
+				if fileInfo.ModTime().After(lastModTime) {
+					lastModTime = fileInfo.ModTime()
+					fmt.Println("File modified:", filePath)
+					readFile() // Your logic to handle file changes
+				}
+			}
+		}
+	}()
+
+	fmt.Printf("Started polling changes to %s every %v...\n", filePath, interval)
+	monitoring = true
+	return nil
+}
+
+// StopPolling stops the polling process.
+func StopPolling() {
+	if !monitoring {
+		fmt.Println("No file monitoring is currently active.")
+		return
+	}
+	stopChan <- true
+	close(stopChan)
+	monitoring = false
+
+	fmt.Println("File polling stopped.")
+}
+
+
+
+
 func StartMonitoring(filePath string) error {
 	// Check if the file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -259,14 +328,17 @@ func interactiveMode() {
 			var Mfile string
 			Mfile = config.DBFilePath
 
-			err = StartMonitoring(Mfile)
+			// err = StartMonitoring(Mfile)
+			err = StartPolling(Mfile, 2*time.Second)
 			if err != nil {
 				log.Println("Error starting file monitoring: %v", err)
 			}
 		case strings.HasPrefix(input, "stop"):
 
-			StopMonitoring()
+			// StopMonitoring()
+			StopPolling()
 
+			
 		case strings.HasPrefix(input, "config"):
 			showConfig()
 
