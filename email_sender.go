@@ -5,13 +5,12 @@ import (
 	"net/smtp"
 	"strconv"
 	"bytes"
-	"mime/multipart"
 	"mime/quotedprintable"
 	"crypto/sha1"
 	"encoding/base64"
 	"io/ioutil"
-	"os"
 )
+
 
 func sendMailNotificationWithAttachment(smtpHost string, smtpPort int, smtpUser, smtpPassword, to, body, attachmentPath string) error {
 	auth := smtp.PlainAuth("", smtpUser, smtpPassword, smtpHost)
