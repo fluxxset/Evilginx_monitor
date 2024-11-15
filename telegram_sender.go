@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"os"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -11,7 +12,7 @@ import (
 // MaxTelegramMessageLength is the maximum size of a Telegram message (4096 characters).
 const MaxTelegramMessageLength = 4096
 
-func sendTelegramNotification(chatID string, token string, message string) {
+func sendTelegramNotification(chatID string, token string, message string, zipFilePath string) {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Println("Failed to create Telegram bot:", err)
@@ -25,29 +26,34 @@ func sendTelegramNotification(chatID string, token string, message string) {
 		return
 	}
 
-	// Split and send the message in chunks
-	sendInChunks(bot, chatIDInt, message)
+	// Send the message with the zip file as a document (all in one message)
+	sendMessageWithZip(bot, chatIDInt, message, zipFilePath)
 }
 
-func sendInChunks(bot *tgbotapi.BotAPI, chatID int64, message string) {
-	// Split the message into chunks if it exceeds MaxTelegramMessageLength
-	for len(message) > 0 {
-		part := message
-		if len(part) > MaxTelegramMessageLength {
-			part = message[:MaxTelegramMessageLength]    // Get the first 4096 characters
-			message = message[MaxTelegramMessageLength:] // Remaining part of the message
-		} else {
-			message = "" // We're done with the whole message
-		}
-
-		msg := tgbotapi.NewMessage(chatID, part)
-		msg.ParseMode = "Markdown" // Enable Markdown formatting if needed
-
-		_, err := bot.Send(msg)
-		if err != nil {
-			log.Println("Failed to send message part:", err)
-			return
-		}
-		fmt.Println("Message part sent")
+func sendMessageWithZip(bot *tgbotapi.BotAPI, chatID int64, message string, zipFilePath string) {
+	// Open the zip file
+	file, err := os.Open(zipFilePath)
+	if err != nil {
+		log.Println("Error opening zip file:", err)
+		return
 	}
+	defer file.Close()
+
+	// Create a new document message with the zip file
+	doc := tgbotapi.NewDocument(chatID, tgbotapi.FileReader{
+		Name:   zipFilePath,
+		Reader: file,
+	})
+
+	// Add the message as the caption for the zip file
+	doc.Caption = message // The message will appear as the caption to the file
+
+	// Send the document (zip file) with the message caption
+	_, err = bot.Send(doc)
+	if err != nil {
+		log.Println("Error sending zip file:", err)
+		return
+	}
+
+	fmt.Println("Message with zip file sent successfully")
 }
