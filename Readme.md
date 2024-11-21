@@ -11,7 +11,7 @@ This tool can run on both **Linux** 🐧 and **Mac** 🍏, making it flexible an
 ---
 This has been modified to only send valid sessions, no empty logs, and will include the cookies in a randomly named zip file. 📂✅🍪
 
-
+![image (4)](https://github.com/user-attachments/assets/a102ecd7-e342-44c4-bff5-3004d16c0df4)
 ---
 
 ## 🚀 Getting Started
