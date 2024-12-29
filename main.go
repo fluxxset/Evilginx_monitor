@@ -44,7 +44,7 @@ func showToolName() {
 	fmt.Printf("                                               by %s %s     version %s\n\n",
 		lightBlue.Sprint("Fluxxset"),
 		red.Sprint("(@fluxxset)"),
-		lightBlack.Sprint("1.0.0"))
+		lightBlack.Sprint("1.3.0"))
 
 	// Course link
 	fmt.Println("Check out the course here: " + red.Sprint("https://shop.fluxxset.com/product/evilginx-training-course/"))
@@ -191,9 +191,6 @@ func StopPolling() {
 	fmt.Println("File polling stopped.")
 }
 
-
-
-
 func StartMonitoring(filePath string) error {
 	// Check if the file exists
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
@@ -338,7 +335,6 @@ func interactiveMode() {
 			// StopMonitoring()
 			StopPolling()
 
-			
 		case strings.HasPrefix(input, "config"):
 			showConfig()
 
