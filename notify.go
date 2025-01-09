@@ -181,7 +181,7 @@ func Notify(session Session) {
 	txtFilePath, err := createTxtFile(session)
 
 	if err != nil {
-		fmt.Println("Error creating zip file:", err)
+		fmt.Println("Error creating Txt file:", err)
 		return
 	}
 

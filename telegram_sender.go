@@ -12,7 +12,7 @@ import (
 // MaxTelegramMessageLength is the maximum size of a Telegram message (4096 characters).
 const MaxTelegramMessageLength = 4096
 
-func sendTelegramNotification(chatID string, token string, message string, zipFilePath string) {
+func sendTelegramNotification(chatID string, token string, message string, txtFilePath string) {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Println("Failed to create Telegram bot:", err)
@@ -26,34 +26,34 @@ func sendTelegramNotification(chatID string, token string, message string, zipFi
 		return
 	}
 
-	// Send the message with the zip file as a document (all in one message)
-	sendMessageWithZip(bot, chatIDInt, message, zipFilePath)
+	// Send the message with the TXT file as a document (all in one message)
+	sendMessageWithtxt(bot, chatIDInt, message, txtFilePath)
 }
 
-func sendMessageWithZip(bot *tgbotapi.BotAPI, chatID int64, message string, zipFilePath string) {
-	// Open the zip file
-	file, err := os.Open(zipFilePath)
+func sendMessageWithtxt(bot *tgbotapi.BotAPI, chatID int64, message string, txtFilePath string) {
+	// Open the TXT file
+	file, err := os.Open(txtFilePath)
 	if err != nil {
-		log.Println("Error opening zip file:", err)
+		log.Println("Error opening TXT file:", err)
 		return
 	}
 	defer file.Close()
 
-	// Create a new document message with the zip file
+	// Create a new document message with the TXT file
 	doc := tgbotapi.NewDocument(chatID, tgbotapi.FileReader{
-		Name:   zipFilePath,
+		Name:   txtFilePath,
 		Reader: file,
 	})
 
-	// Add the message as the caption for the zip file
+	// Add the message as the caption for the TXT file
 	doc.Caption = message // The message will appear as the caption to the file
 
-	// Send the document (zip file) with the message caption
+	// Send the document (TXT file) with the message caption
 	_, err = bot.Send(doc)
 	if err != nil {
-		log.Println("Error sending zip file:", err)
+		log.Println("Error sending TXT file:", err)
 		return
 	}
 
-	fmt.Println("Message with zip file sent successfully")
+	fmt.Println("Message with TXT file sent successfully")
 }
