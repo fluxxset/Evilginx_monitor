@@ -1,8 +1,13 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"mime/multipart"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -102,5 +107,66 @@ func updateMessageFile(chatID string, token string, originalMessageID int, txtFi
 	}
 
 	fmt.Println("Updated file sent successfully")
+	return nil
+}
+func editMessageFile(chatID string, token string, messageID int, txtFilePath string) error {
+	url := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageMedia", token)
+
+	// Open the TXT file
+	file, err := os.Open(txtFilePath)
+	if err != nil {
+		return fmt.Errorf("error opening TXT file: %v", err)
+	}
+	defer file.Close()
+
+	// Create a multipart form request
+	var requestBody bytes.Buffer
+	writer := multipart.NewWriter(&requestBody)
+
+	// Add chat_id, message_id, and media fields
+	_ = writer.WriteField("chat_id", chatID)
+	_ = writer.WriteField("message_id", fmt.Sprintf("%d", messageID))
+	media := map[string]interface{}{
+		"type":    "document",
+		"media":   "attach://file",
+		"caption": "Updated file attached.",
+	}
+	mediaJSON, _ := json.Marshal(media)
+	_ = writer.WriteField("media", string(mediaJSON))
+
+	// Add the file as a form field
+	filePart, err := writer.CreateFormFile("file", txtFilePath)
+	if err != nil {
+		return fmt.Errorf("error creating form file: %v", err)
+	}
+	_, err = io.Copy(filePart, file)
+	if err != nil {
+		return fmt.Errorf("error copying file to form: %v", err)
+	}
+
+	// Close the writer
+	writer.Close()
+
+	// Send the request
+	req, err := http.NewRequest("POST", url, &requestBody)
+	if err != nil {
+		return fmt.Errorf("error creating HTTP request: %v", err)
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return fmt.Errorf("error sending HTTP request: %v", err)
+	}
+	defer resp.Body.Close()
+
+	// Check for success response
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("failed to edit message: %s", string(body))
+	}
+
+	fmt.Println("Message edited successfully with updated file.")
 	return nil
 }
