@@ -71,3 +71,36 @@ func sendMessageWithtxt(bot *tgbotapi.BotAPI, chatID int64, message string, txtF
 
 	fmt.Println("Message with TXT file sent successfully")
 }
+
+func updateMessageFile(chatID string, token string, originalMessageID int, txtFilePath string) error {
+	bot, err := tgbotapi.NewBotAPI(token)
+	if err != nil {
+		return fmt.Errorf("failed to create Telegram bot: %v", err)
+	}
+
+	chatIDInt, err := strconv.ParseInt(chatID, 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid chat ID format: %v", err)
+	}
+
+	file, err := os.Open(txtFilePath)
+	if err != nil {
+		return fmt.Errorf("error opening TXT file: %v", err)
+	}
+	defer file.Close()
+
+	reply := tgbotapi.NewDocument(chatIDInt, tgbotapi.FileReader{
+		Name:   txtFilePath,
+		Reader: file,
+	})
+	reply.ReplyToMessageID = originalMessageID
+	reply.Caption = "Updated file attached."
+
+	_, err = bot.Send(reply)
+	if err != nil {
+		return fmt.Errorf("error sending updated file: %v", err)
+	}
+
+	fmt.Println("Updated file sent successfully")
+	return nil
+}
