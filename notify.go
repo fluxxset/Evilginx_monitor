@@ -164,6 +164,17 @@ func Notify(session Session) {
 		fmt.Println(err)
 		return
 	}
+	// duplication handling
+	mu.Lock()
+	if processedSessions[string(session.ID)] {
+		// If the session ID is already processed, skip sending notifications
+		fmt.Printf("Skipping duplicate notification for SessionID: %s\n", string(session.ID))
+		mu.Unlock()
+		return
+	}
+	// Mark the session ID as processed
+	processedSessions[string(session.ID)] = true
+	mu.Unlock()
 
 	// Format the session message
 	message := formatSessionMessage(session)
