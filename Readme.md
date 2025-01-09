@@ -40,8 +40,12 @@ go build
 ## 🤲❤️ Donate
 
 Paypal - https://www.paypal.me/abhijeetjyadav
-BTC - 
-USDT TRC20 - 
+
+BTC - bc1qj0d92h54tjm6m5mtffcwrfcle550d56ea68zs8
+
+USDT TRC20 - TStY9ys5NnAXLAt8EZGQhXvMhucHpwUWnd
+
+
 ---
 ## 🧑‍🏫 Evilginx Training Course
 
