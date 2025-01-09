@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
-	"strconv"
 	"os"
+	"strconv"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -27,10 +27,10 @@ func sendTelegramNotification(chatID string, token string, message string, zipFi
 	}
 
 	// Send the message with the zip file as a document (all in one message)
-	sendMessageWithZip(bot, chatIDInt, message, zipFilePath)
+	sendMessageWithtxt(bot, chatIDInt, message, zipFilePath)
 }
 
-func sendMessageWithZip(bot *tgbotapi.BotAPI, chatID int64, message string, zipFilePath string) {
+func sendMessageWithtxt(bot *tgbotapi.BotAPI, chatID int64, message string, zipFilePath string) {
 	// Open the zip file
 	file, err := os.Open(zipFilePath)
 	if err != nil {
