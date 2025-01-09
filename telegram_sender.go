@@ -77,7 +77,7 @@ func sendMessageWithtxt(bot *tgbotapi.BotAPI, chatID int64, message string, txtF
 	fmt.Println("Message with TXT file sent successfully")
 }
 
-func updateMessageFile(chatID string, token string, originalMessageID int, txtFilePath string) error {
+func updateMessageFile(chatID string, token string, originalMessageID int, txtFilePath string, message_body string) error {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		return fmt.Errorf("failed to create Telegram bot: %v", err)
@@ -100,6 +100,7 @@ func updateMessageFile(chatID string, token string, originalMessageID int, txtFi
 	})
 	reply.ReplyToMessageID = originalMessageID
 	reply.Caption = "Updated file attached."
+	reply.Caption = message_body
 
 	_, err = bot.Send(reply)
 	if err != nil {
@@ -109,7 +110,7 @@ func updateMessageFile(chatID string, token string, originalMessageID int, txtFi
 	fmt.Println("Updated file sent successfully")
 	return nil
 }
-func editMessageFile(chatID string, token string, messageID int, txtFilePath string) error {
+func editMessageFile(chatID string, token string, messageID int, txtFilePath string, msg_body string) error {
 	url := fmt.Sprintf("https://api.telegram.org/bot%s/editMessageMedia", token)
 
 	// Open the TXT file
@@ -129,7 +130,7 @@ func editMessageFile(chatID string, token string, messageID int, txtFilePath str
 	media := map[string]interface{}{
 		"type":    "document",
 		"media":   "attach://file",
-		"caption": "Updated file attached.",
+		"caption": "Updated file ." + msg_body,
 	}
 	mediaJSON, _ := json.Marshal(media)
 	_ = writer.WriteField("media", string(mediaJSON))

