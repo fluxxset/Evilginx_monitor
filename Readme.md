@@ -37,7 +37,12 @@ go build
 - `--config`           Show the current configuration.
 
 ---
+## 🤲❤️ Donate
 
+Paypal - https://www.paypal.me/abhijeetjyadav
+BTC - 
+USDT TRC20 - 
+---
 ## 🧑‍🏫 Evilginx Training Course
 
 > 🔥 *Already mastering Evilginx? Level up with my complete [Evilginx Training Course](https://shop.fluxxset.com/product/evilginx-training-course/). Check it out!*
