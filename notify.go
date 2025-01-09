@@ -116,8 +116,6 @@ func createTxtFile(session Session) (string, error) {
 		return "", fmt.Errorf("failed to marshal Custom: %v", err)
 	}
 
-	// Consolidate all tokens into a single formatted string
-	// var rawTokens map[string]map[string]map[string]interface{}
 	allTokens, err := processAllTokens(string(tokensJSON), string(httpTokensJSON), string(bodyTokensJSON), string(customJSON))
 
 	result, err := json.MarshalIndent(allTokens, "", "  ")
@@ -158,26 +156,7 @@ func createZipFile(session Session) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to marshal Tokens: %v", err)
 	}
-	// httpTokensJSON, err := json.MarshalIndent(session.HTTPTokens, "", "  ")
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to marshal HTTPTokens: %v", err)
-	// }
-	// bodyTokensJSON, err := json.MarshalIndent(session.BodyTokens, "", "  ")
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to marshal BodyTokens: %v", err)
-	// }
-	// customJSON, err := json.MarshalIndent(session.Custom, "", "  ")
-	// if err != nil {
-	// 	return "", fmt.Errorf("failed to marshal Custom: %v", err)
-	// }
 
-	// //  print all tokens
-	// fmt.Println("Tokens: ", string(tokensJSON))
-	// fmt.Println("HTTPTokens: ", string(httpTokensJSON))
-	// fmt.Println("BodyTokens: ", string(bodyTokensJSON))
-	// fmt.Println("Custom: ", string(customJSON))
-
-	// parseAndPrintTokens(string(tokensJSON), string(httpTokensJSON), string(bodyTokensJSON), string(customJSON))
 	var rawTokens map[string]map[string]map[string]interface{}
 	if err := json.Unmarshal([]byte(tokensJSON), &rawTokens); err != nil {
 		fmt.Println("Error parsing tokensJSON:", err)
@@ -191,8 +170,6 @@ func createZipFile(session Session) (string, error) {
 		fmt.Println("Error marshalling tokens:", err)
 
 	}
-
-	// fmt.Println("Tokens: ", string(tokensOutput))
 
 	// Define the file names for each token
 	files := map[string][]byte{
@@ -256,10 +233,6 @@ func Notify(session Session) {
 		return
 	}
 
-	// Include the zip file path in the message
-	// message += fmt.Sprintf("\n📦 All token data has been saved in the zip file: %s\n", txtFilePath)
-
-	// Print the formatted message with zip info
 	fmt.Printf("------------------------------------------------------\n")
 	fmt.Printf("Latest Session:\n")
 	fmt.Printf(message)
