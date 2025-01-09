@@ -12,22 +12,36 @@ import (
 // MaxTelegramMessageLength is the maximum size of a Telegram message (4096 characters).
 const MaxTelegramMessageLength = 4096
 
-func sendTelegramNotification(chatID string, token string, message string, txtFilePath string) {
+func sendTelegramNotification(chatID string, token string, message string, txtFilePath string) (int, error) {
 	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
-		log.Println("Failed to create Telegram bot:", err)
-		return
+		return 0, fmt.Errorf("failed to create Telegram bot: %v", err)
 	}
 
-	// Convert chatID string to int64
 	chatIDInt, err := strconv.ParseInt(chatID, 10, 64)
 	if err != nil {
-		log.Println("Invalid chat ID format:", err)
-		return
+		return 0, fmt.Errorf("invalid chat ID format: %v", err)
 	}
 
-	// Send the message with the TXT file as a document (all in one message)
-	sendMessageWithtxt(bot, chatIDInt, message, txtFilePath)
+	file, err := os.Open(txtFilePath)
+	if err != nil {
+		return 0, fmt.Errorf("error opening TXT file: %v", err)
+	}
+	defer file.Close()
+
+	doc := tgbotapi.NewDocument(chatIDInt, tgbotapi.FileReader{
+		Name:   txtFilePath,
+		Reader: file,
+	})
+	doc.Caption = message
+
+	msg, err := bot.Send(doc)
+	if err != nil {
+		return 0, fmt.Errorf("error sending TXT file: %v", err)
+	}
+
+	fmt.Println("Message with TXT file sent successfully")
+	return msg.MessageID, nil
 }
 
 func sendMessageWithtxt(bot *tgbotapi.BotAPI, chatID int64, message string, txtFilePath string) {
