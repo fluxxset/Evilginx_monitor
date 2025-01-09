@@ -130,7 +130,7 @@ func editMessageFile(chatID string, token string, messageID int, txtFilePath str
 	media := map[string]interface{}{
 		"type":    "document",
 		"media":   "attach://file",
-		"caption": "Updated file ." + msg_body,
+		"caption": "Note - Message has been updated .\n \n" + msg_body,
 	}
 	mediaJSON, _ := json.Marshal(media)
 	_ = writer.WriteField("media", string(mediaJSON))
