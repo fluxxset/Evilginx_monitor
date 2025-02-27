@@ -1,5 +1,5 @@
 
-
+NOTE:This project has been Merged/Moved with following source https://github.com/fluxxset/evilginx2.git
 
 ---
 
